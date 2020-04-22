@@ -4,7 +4,7 @@ Database Schema, ORM, and related commands.
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, UniqueConstraint, String
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -23,10 +23,13 @@ class Dataset(Base):
 
     key = Column(Integer, primary_key=True)
 
-    filename = Column(String, unique=True)
-    md5sum = Column(String, unique=True)
+    filename = Column(String)
+    md5sum = Column(String)
+    eval_type = Column(String)
 
     instances = relationship('Instance', back_populates='dataset')
+
+    UniqueConstraint(filename, eval_type)
 
 
 class Instance(Base):
@@ -34,14 +37,13 @@ class Instance(Base):
 
     key = Column(Integer, primary_key=True)
     dataset_key = Column(Integer, ForeignKey('datasets.key'))
+    question_key = Column(Integer, ForeignKey('questions.key'))
 
-    left_context = Column(String)
     sentence_good = Column(String)
     sentence_bad = Column(String)
-    right_context = Column(String)
 
     dataset = relationship('Dataset', back_populates='instances')
-    questions = relationship('Question', back_populates='instance')
+    question = relationship('Question', back_populates='instance')
 
 
 class HitType(Base):
@@ -83,7 +85,7 @@ class Question(Base):
     choice_b = Column(String)
 
     hit = relationship('Hit', back_populates='questions')
-    instance = relationship('Instance', back_populates='questions')
+    instance = relationship('Instance', back_populates='question')
 
 
 class Qualification(Base):

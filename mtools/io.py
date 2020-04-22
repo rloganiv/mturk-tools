@@ -24,36 +24,42 @@ def compute_checksum(filename):
     return digest
 
 
-def create_instance(obj):
-    # Use dict.get for contexts since they are not required.
+def create_instance(obj, eval_type):
+    sentence_good = obj['sentence_good']
+    sentence_bad = obj['sentence_bad']
+    if eval_type == 'left':
+        sentence_good = obj['left_context'] + ' ' + sentence_good
+        sentence_bad = obj['left_context'] + ' ' + sentence_bad
+    if eval_type == 'right':
+        sentence_good = sentence_good + ' ' + obj['right_context']
+        sentence_bad = sentence_bad + ' ' + obj['right_context']
     instance = Instance(
-        sentence_good=obj['sentence_good'],
-        sentence_bad=obj['sentence_bad'],
-        left_context=obj.get('left_context', None),
-        right_context=obj.get('right_context', None)
+        sentence_good=sentence_good,
+        sentence_bad=sentence_bad,
     )
     return instance
 
 
 @cli.command()
+@click.option('-e', '--eval_type', type=str, required=True)
 @click.argument('filename')
-def load_dataset(filename):
+def load_dataset(filename, eval_type):
+    assert eval_type in ('left', 'right', 'no_context')
     # Add the dataset
     md5sum = compute_checksum(filename)
-    dataset = Dataset(filename=filename, md5sum=md5sum)
-    with session_scope() as session:
-        session.add(dataset)
+    dataset = Dataset(filename=filename, md5sum=md5sum, eval_type=eval_type)
 
     # Add the instances
     with open(filename, 'r') as f:
         instances = []
         for line in f:
             obj = json.loads(line)
-            instance = create_instance(obj)
+            instance = create_instance(obj, eval_type)
             instance.dataset = dataset
             instances.append(instance)
 
     with session_scope() as session:
+        session.add(dataset)
         session.add_all(instances)
 
     logger.info('Successfully added data from {filename}')
