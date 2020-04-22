@@ -1,0 +1,12 @@
+{
+    "ShortName": "multiple-choice",
+    "Title": "Which is Better? (Multiple Choice, <5 Minutes)",
+    "Description": "In this HIT, you will be given pairs of sentences/passages and asked to decide which of the two is the most natural. The average time to complete the HIT is less than 5 minutes.",
+    "Keywords": "multiple choice, nlp",
+    "AssignmentDurationInSeconds": "3600",
+    "Reward": "0.50",
+    "QualificationRequirements": [
+        {"QualificationTypeId"}
+
+    ]
+}

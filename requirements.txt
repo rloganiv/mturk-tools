@@ -1,0 +1,8 @@
+# For AWS
+boto3>=1.0.0
+
+# For tracking projects
+sqlalchemy>=1.3.16
+
+# For CLI
+click>=7.1.1
