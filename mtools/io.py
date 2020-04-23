@@ -6,6 +6,7 @@ import json
 import logging
 
 import click
+from sqlalchemy.sql import exists
 
 from mtools.db import session_scope
 from mtools.db import Dataset, HitType, Instance, Qualification
@@ -79,10 +80,11 @@ def create_hittype(filename):
         # Try to fail early. If the HITType gets created on MTurk but misses
         # the database we're in for a bad time...
         already_exists = (
-            session.query(HitType)
-                   .filter(HitType.short_name == short_name)
-                   .exists()
+            session.query(
+                exists().where(HitType.short_name == short_name)
+            ).scalar()
         )
+        print(already_exists)
         if already_exists:
             raise ValueError(f'HITType "{short_name}" already exists.')
 
@@ -93,7 +95,6 @@ def create_hittype(filename):
             short_name=short_name,
             hit_type_id=response['HITTypeId'],
             title=obj['Title'],
-            assignment_duration=obj['AssignmentDurationInSeconds'],
             keywords=obj['Keywords'],
             description=obj['Description'],
             reward=obj['Reward']

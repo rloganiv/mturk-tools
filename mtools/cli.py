@@ -11,7 +11,7 @@ from mtools.config import config
 
 
 @click.group()
-@click.option('--debug', default=False)
+@click.option('--debug/--no-debug', default=False)
 def cli(debug):
     level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(

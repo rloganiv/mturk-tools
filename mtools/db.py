@@ -5,7 +5,6 @@ from contextlib import contextmanager
 
 from sqlalchemy import create_engine
 from sqlalchemy import Column, ForeignKey, Integer, UniqueConstraint, String
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
@@ -37,13 +36,12 @@ class Instance(Base):
 
     key = Column(Integer, primary_key=True)
     dataset_key = Column(Integer, ForeignKey('datasets.key'))
-    question_key = Column(Integer, ForeignKey('questions.key'))
 
     sentence_good = Column(String)
     sentence_bad = Column(String)
 
     dataset = relationship('Dataset', back_populates='instances')
-    question = relationship('Question', back_populates='instance')
+    question = relationship('Question', uselist=False, back_populates='instance')
 
 
 class HitType(Base):
@@ -114,7 +112,7 @@ def session_scope():
     try:
         yield session
         session.commit()
-    except SQLAlchemyError:
+    except:  # noqa: E722
         session.rollback()
         raise
     finally:
