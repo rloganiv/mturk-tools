@@ -7,7 +7,6 @@ import random
 
 import click
 
-from mtools.cli import cli
 from mtools.client import client
 from mtools.db import session_scope
 from mtools.db import Dataset, Question, Hit, HitType, Instance
@@ -80,13 +79,13 @@ def create_question_form(overview, questions):
     question_form.add_overview(**overview)
     for question in questions:
         question_form.add_multiple_choice_question(
-            question_identifier=question.key,
+            question_identifier=str(question.key),
             choices=[question.choice_a, question.choice_b]
         )
     return question_form
 
 
-@cli.command()
+@click.command()
 @click.option('-n', '--num_hits', required=True, type=int)
 @click.option('-q', '--questions_per_hit', required=True, type=int)
 @click.option('--max_assignments', type=int, default=3)
@@ -99,6 +98,7 @@ def deploy(hit_type_short_name,
            max_assignments,
            lifetime_in_seconds,
            overview_filename):
+    logger.info('Deploying HITs w/ type "%s"', hit_type_short_name)
     with open(overview_filename, 'r') as f:
         overview = json.load(f)
 
@@ -121,6 +121,7 @@ def deploy(hit_type_short_name,
             )
         for instance_chunk in instance_chunks:
             questions = [create_question(i) for i in instance_chunk]
+            session.commit()  # So the keys exist
             question_form = create_question_form(overview, questions)
             response = client.create_hit_with_hit_type(
                 HITTypeId=hit_type.hit_type_id,
@@ -128,6 +129,7 @@ def deploy(hit_type_short_name,
                 LifetimeInSeconds=604800,  # 1 week
                 Question=question_form.tostring(),
             )
+            logger.info("Create HIT with HITType response: %s", response)
             hit_id = response['HIT']['HITId']
             hit = Hit(
                 hit_id=hit_id,

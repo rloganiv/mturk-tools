@@ -1,4 +1,4 @@
 {
     "title": "Select the Most Natural Sentence",
-    "text": "You will be presented with multiple pairs of sentences/passages in the form below. For each pair your task is to select the sentence/passage that is the most natural (e.g., grammatically correct, sensible, topically coherent)."
+    "text": "You will be presented with multiple pairs of sentences/passages in the form below. For each pair your task is to select the sentence/passage that is the most natural (e.g., grammatically correct, sensible, topically coherent). If you believe both sentences are equally natural you may choose whichever you prefer. Your answers may be checked for quality; bad answers (e.g., always picking the first answer) will not be accepted and will result in being banned from future HITs."
 }

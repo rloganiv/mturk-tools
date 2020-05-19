@@ -1,8 +1,24 @@
 {
-    "ShortName": "multiple-choice",
     "Title": "Which is Better? (Multiple Choice, <5 Minutes)",
-    "Description": "In this HIT, you will be given pairs of sentences/passages and asked to decide which of the two is the most natural. The average time to complete the HIT is less than 5 minutes.",
+    "Description": "In this HIT, you will be given pairs of sentences/passages and asked to decide which of the two is the most natural. The average time to complete the HIT is less than 5 minutes. WARNING: Text occasionally contains swear words.",
     "Keywords": "multiple choice, nlp",
     "AssignmentDurationInSeconds": 3600,
-    "Reward": "0.50"
+    "Reward": "0.25",
+    "QualificationRequirements": [
+        {
+            "QualificationTypeId": "00000000000000000071",
+            "Comparator": "EqualTo",
+            "LocaleValues": [{"Country": "US"}]
+        },
+        {
+            "QualificationTypeId": "00000000000000000040",
+            "Comparator": "GreaterThan",
+            "IntegerValues": [100]
+        },
+        {
+            "QualificationTypeId": "000000000000000000L0",
+            "Comparator": "GreaterThan",
+            "IntegerValues": [90]
+        }
+    ]
 }

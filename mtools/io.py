@@ -8,10 +8,9 @@ import logging
 import click
 from sqlalchemy.sql import exists
 
+from mtools.client import client
 from mtools.db import session_scope
 from mtools.db import Dataset, HitType, Instance, Qualification
-from mtools.cli import cli
-from mtools.client import client
 
 
 logger = logging.getLogger(__name__)
@@ -41,9 +40,9 @@ def create_instance(obj, eval_type):
     return instance
 
 
-@cli.command()
-@click.option('-e', '--eval_type', type=str, required=True)
+@click.command()
 @click.argument('filename')
+@click.option('-e', '--eval_type', type=str, required=True)
 def load_dataset(filename, eval_type):
     assert eval_type in ('left', 'right', 'no_context')
     # Add the dataset
@@ -63,20 +62,22 @@ def load_dataset(filename, eval_type):
         session.add(dataset)
         session.add_all(instances)
 
-    logger.info('Successfully added data from {filename}')
+    logger.info('Successfully added data from "%s"', filename)
 
 
-@cli.command()
+@click.command()
+@click.argument('short_name')
 @click.argument('filename')
-def create_hittype(filename):
+@click.option('-q', '--custom_qualification_types', multiple=True)
+def create_hittype(short_name, filename, custom_qualification_types):
+    logger.info('Creating HITType w/ short_name %s from "%s"', short_name, filename)
+    if len(custom_qualification_types) > 0:
+        logger.info('Custom qualifications: %s', custom_qualification_types)
     # Load definition from a json file
     with open(filename, 'r') as f:
         obj = json.load(f)
 
     with session_scope() as session:
-        # Popping since we don't want in dict when querying API.
-        short_name = obj.pop('ShortName')
-
         # Try to fail early. If the HITType gets created on MTurk but misses
         # the database we're in for a bad time...
         already_exists = (
@@ -84,12 +85,25 @@ def create_hittype(filename):
                 exists().where(HitType.short_name == short_name)
             ).scalar()
         )
-        print(already_exists)
         if already_exists:
             raise ValueError(f'HITType "{short_name}" already exists.')
 
+        qualification_requirements = obj['QualificationRequirements']
+        for qtype in custom_qualification_types:
+            qualification = (
+                session.query(Qualification)
+                       .filter(Qualification.short_name == qtype)
+                       .one()
+            )
+            qualification_type_id = qualification.qualification_type_id
+            qualification_requirement = json.loads(qualification.qualification_requirement)
+            qualification_requirement['QualificationTypeId'] = qualification_type_id
+            qualification_requirements.append(qualification_requirement)
+
         # Create HITType on MTurk.
+        logger.info("Create HITType args: %s", obj)
         response = client.create_hit_type(**obj)
+        logger.info("Create HITType response: %s", response)
 
         hit_type = HitType(
             short_name=short_name,
@@ -103,32 +117,35 @@ def create_hittype(filename):
         session.add(hit_type)
 
 
-@cli.command()
+@click.command()
+@click.argument('short_name')
 @click.argument('filename')
-def create_qualification(filename):
+def create_qualification(short_name, filename):
     # Load definition from a json file
     with open(filename, 'r') as f:
         obj = json.load(f)
 
     with session_scope() as session:
         # Popping since we don't want in dict when querying API.
-        short_name = obj.pop('ShortName')
+        qualification_requirement = obj.pop('QualificationRequirement')
 
         # Try to fail early. If the HITType gets created on MTurk but misses
         # the database we're in for a bad time...
         already_exists = (
-            session.query(Qualification)
-                   .filter(Qualification.short_name == short_name)
-                   .exists()
+            session.query(
+                exists().where(Qualification.short_name == short_name)
+            ).scalar()
         )
         if already_exists:
             raise ValueError(f'Qualification "{short_name}" already exists.')
 
         # Create HITType on MTurk.
-        response = client.create_qualification(**obj)
+        response = client.create_qualification_type(**obj)
+        logger.info("Create QualificationType response: %s", response)
 
         qualification = Qualification(
             short_name=short_name,
+            qualification_requirement=json.dumps(qualification_requirement),
             qualification_type_id=response['QualificationType']['QualificationTypeId'],
             name=obj['Name'],
         )

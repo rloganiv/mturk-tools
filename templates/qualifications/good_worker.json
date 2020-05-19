@@ -1,8 +1,13 @@
 {
-    "ShortName": "good-worker",
-    "Name": "6d97b8ae556ab7e239d7ca22abbbe06b",
+    "Name": "Passed Exam",
+    "Description": "Worker passed the lm-eval qualification",
     "Keywords": "merit-based, uci",
     "QualificationTypeStatus": "Active",
-    "IsRequestable": "False",
-    "AutoGranted": "False"
+    "AutoGranted": true,
+    "AutoGrantedValue": 0,
+    "QualificationRequirement": {
+        "Comparator": "GreaterThan",
+        "IntegerValues": [0],
+        "ActionsGuarded": "DiscoverPreviewAndAccept"
+    }
 }

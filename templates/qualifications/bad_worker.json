@@ -1,0 +1,8 @@
+{
+    "Name": "Disqualified",
+    "Description": "Poor quality work on HITs",
+    "Keywords": "merit-based, uci",
+    "QualificationTypeStatus": "Active",
+    "AutoGranted": false,
+    "Comparator": "DoesNotExist"
+}

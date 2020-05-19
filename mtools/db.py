@@ -2,17 +2,19 @@
 Database Schema, ORM, and related commands.
 """
 from contextlib import contextmanager
+import logging
 
+import click
 from sqlalchemy import create_engine
 from sqlalchemy import Column, ForeignKey, Integer, UniqueConstraint, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
-from mtools.cli import cli
 from mtools.config import config
 
 
-engine = create_engine(config['database']['url'], echo=True)
+logger = logging.getLogger(__name__)
+engine = create_engine(config['database']['url'])
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
@@ -91,18 +93,9 @@ class Qualification(Base):
 
     key = Column(Integer, primary_key=True)
     short_name = Column(String, unique=True)
+    qualification_requirement = Column(String)
     name = Column(String)
     qualification_type_id = Column(String)
-
-
-@cli.command()
-def init_db():
-    Base.metadata.create_all(engine)
-
-
-@cli.command()
-def clear_db():
-    Base.metadata.drop_all(engine)
 
 
 @contextmanager
@@ -117,3 +110,15 @@ def session_scope():
         raise
     finally:
         session.close()
+
+
+@click.command()
+def init_db():
+    Base.metadata.create_all(engine)
+    logger.info('Initialized database')
+
+
+@click.command()
+def clear_db():
+    Base.metadata.drop_all(engine)
+    logger.info('Cleared database')
